@@ -1,0 +1,7 @@
+.idea/
+__pycache__/
+bot.log
+config.ini
+bot_data.pickle
+shiny_data.pickle
+
