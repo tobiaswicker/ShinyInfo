@@ -1,4 +1,3 @@
 [bot]
 token=YOUR_TOKEN
 log_file=bot.log
-shiny_data_file=shiny_data.pickle
