@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
+import json
 import logging
+import os
 
 from telegram import Bot, Update, InlineKeyboardButton, InlineKeyboardMarkup, ParseMode
 from telegram.error import BadRequest
@@ -17,6 +19,33 @@ logging.basicConfig(format='%(asctime)s - %(name)s:%(lineno)d - %(levelname)s - 
 logger = logging.getLogger(__name__)
 
 
+_pokemon = {}
+
+
+def _load_pokemon():
+    """Load all pokemon for various languages"""
+    if not _pokemon:
+        current_directory = os.path.dirname(os.path.realpath(__file__))
+        pokemon_directory = os.path.join(current_directory, 'pokemon')
+        for filename in os.listdir(pokemon_directory):
+            if filename.endswith(".json"):
+                lang_id = filename.replace('.json', '')
+                file_path = os.path.join(pokemon_directory, filename)
+                with open(file=file_path, mode='r', encoding='utf-8') as f:
+                    _pokemon[lang_id] = json.load(f)
+
+
+def get_pokemon(lang, dex_id):
+    """Get pokemon name for a certain language by id"""
+    _load_pokemon()
+
+    dex_id = int(dex_id)
+    if lang in _pokemon and dex_id < len(_pokemon[lang]) + 1:
+        return _pokemon[lang][dex_id - 1]
+
+    return "unknown_pokemon"
+
+
 def check_shinies(context: CallbackContext):
     # noinspection PyProtectedMember
     dp = context._dispatcher
@@ -30,7 +59,8 @@ def check_shinies(context: CallbackContext):
 
     for site, mons in new_shiny.items():
         if mons:
-            new_shiny_str = ", ".join(str(x) for x in mons.keys())
+            new_shiny_str = "\n".join(f"{dex_id} {get_pokemon('en', dex_id)} / {get_pokemon('de', dex_id)}"
+                                      for dex_id in mons.keys())
             new_shiny_info += f"Information about new shiny Pokémon have been added to {site}:\n" \
                               f"{new_shiny_str}\n\n"
 
@@ -53,7 +83,7 @@ def check_shinies(context: CallbackContext):
             changed_shiny_info += f"Shiny info on {site} changed for the following Pokémon:\n"
 
             for dex_id, changed_info in mons.items():
-                changed_shiny_info += f"#{dex_id}:\n"
+                changed_shiny_info += f"#{dex_id} {get_pokemon('en', dex_id)} / {get_pokemon('de', dex_id)}:\n"
                 for attr, old_new_val in changed_info.items():
                     changed_shiny_info += f"`{attr}` changed from `{old_new_val[0]}` to `{old_new_val[1]}`\n"
 
@@ -93,7 +123,8 @@ def list_shinies(update: Update, context: CallbackContext):
         shinies = shiny_manager.get_shinies(site)
         shiny_str = f"*{site}*\n"
         if shinies:
-            shiny_str += "\n".join(str(x) for x in shinies.keys())
+            shiny_str += "\n".join(f"#{dex_id} {get_pokemon('en', dex_id)} / {get_pokemon('de', dex_id)}"
+                                   for dex_id in shinies.keys())
         else:
             shiny_str += f"No information about shiny pokémon available."
         context.bot.send_message(chat_id=chat_id, text=shiny_str)
