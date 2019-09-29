@@ -3,6 +3,7 @@ import json
 import logging
 import os
 
+import telegram
 from telegram import Bot, Update, InlineKeyboardButton, InlineKeyboardMarkup, ParseMode
 from telegram.error import BadRequest
 from telegram.ext import CommandHandler, Updater, CallbackContext, PicklePersistence, CallbackQueryHandler
@@ -104,6 +105,8 @@ def list_shinies(update: Update, context: CallbackContext):
     """List all shinies for all sources"""
     chat_id = update.effective_chat.id
 
+    logger.info(f"Listing shinies in chat #{chat_id}")
+
     chat_data = context.chat_data
 
     query = update.callback_query
@@ -127,7 +130,24 @@ def list_shinies(update: Update, context: CallbackContext):
                                    for dex_id in shinies.keys())
         else:
             shiny_str += f"No information about shiny pokémon available."
-        context.bot.send_message(chat_id=chat_id, text=shiny_str)
+
+        # ensure message does not exceed telegrams max message length
+        while len(shiny_str) > telegram.constants.MAX_MESSAGE_LENGTH:
+            # find last line break within bounds
+            cut_off_index = shiny_str[:telegram.constants.MAX_MESSAGE_LENGTH].rfind("\n")
+            # make sure there is a line break
+            if cut_off_index < 0:
+                # otherwise just do a hard cut
+                cut_off_index = telegram.constants.MAX_MESSAGE_LENGTH
+            # get what fits
+            fitting_message = shiny_str[:cut_off_index]
+            # remove fitting message from original message text
+            shiny_str = shiny_str[cut_off_index:]
+
+            context.bot.send_message(chat_id=chat_id, text=fitting_message, parse_mode=ParseMode.MARKDOWN)
+
+        # send whats left
+        context.bot.send_message(chat_id=chat_id, text=shiny_str, parse_mode=ParseMode.MARKDOWN)
 
 
 def select_source(update: Update, context: CallbackContext):
