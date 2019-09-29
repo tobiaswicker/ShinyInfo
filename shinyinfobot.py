@@ -105,8 +105,9 @@ def check_shinies(context: CallbackContext):
 def list_shinies(update: Update, context: CallbackContext):
     """List all shinies for all sources"""
     chat_id = update.effective_chat.id
+    user = update.effective_user
 
-    logger.info(f"Listing shinies in chat #{chat_id}")
+    logger.info(f"Listing shinies in chat #{chat_id} for user #{user.id} (@{user.username})")
 
     chat_data = context.chat_data
 
@@ -167,6 +168,7 @@ def select_source(update: Update, context: CallbackContext):
     """Callback for selecting shiny sources"""
     chat_id = update.effective_chat.id
     message_id = update.effective_message.message_id
+    user = update.effective_user
 
     chat_data = context.chat_data
 
@@ -176,6 +178,9 @@ def select_source(update: Update, context: CallbackContext):
     popup_text = None
     if len(params) == 2:
         site = params[1]
+
+        logger.info(f"Button for source '{site}' pressed by user #{user.id} (@{user.username})")
+
         if 'disabled_sources' not in chat_data:
             chat_data['disabled_sources'] = [site]
             popup_text = f"Source {site} removed."
@@ -185,6 +190,8 @@ def select_source(update: Update, context: CallbackContext):
         else:
             chat_data['disabled_sources'].append(site)
             popup_text = f"Source {site} removed."
+    else:
+        logger.info(f"Showing source options to user #{user.id} (@{user.username})")
 
     text = "Select the sources you would like me to use when informing you about shiny Pokémon.\n" \
            "You are automatically being subscribed to new sources when they come available."
