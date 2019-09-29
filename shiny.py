@@ -117,7 +117,7 @@ class ShinyManager:
             for link_tag in shiny_links:
                 # get dex id
                 link = link_tag.attrib['href']
-                dex_id = int(link.replace('/pokemon/', '').replace('-alolan', ''))
+                dex_id = int("".join(digit for digit in link if digit.isdigit()))
 
                 # create a new shiny if shiny doesn't exist yet
                 if dex_id not in shiny_result:
