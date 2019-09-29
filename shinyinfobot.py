@@ -86,7 +86,8 @@ def check_shinies(context: CallbackContext):
             for dex_id, changed_info in mons.items():
                 changed_shiny_info += f"#{dex_id} {get_pokemon('en', dex_id)} / {get_pokemon('de', dex_id)}:\n"
                 for attr, old_new_val in changed_info.items():
-                    changed_shiny_info += f"`{attr}` changed from `{old_new_val[0]}` to `{old_new_val[1]}`\n"
+                    changed_shiny_info += f"`{attr}`{shiny_manager.get_emoji(attr)} changed from " \
+                                          f"`{old_new_val[0]}` to `{old_new_val[1]}`\n"
 
             changed_shiny_info += "\n"
 
@@ -122,12 +123,24 @@ def list_shinies(update: Update, context: CallbackContext):
     context.bot.answer_callback_query(callback_query_id=query.id, text="Listing shiny Pokémon.")
 
     shiny_manager = ShinyManager()
+
+    legend = f"*Legend*\n\n" \
+             f"The following emojis symbolize how you can obtain the shiny form of that Pokémon:\n" \
+             f"• {shiny_manager.get_emoji('wild')} in the wild\n" \
+             f"• {shiny_manager.get_emoji('raid')} through raids\n" \
+             f"• {shiny_manager.get_emoji('evolution')} by evolving the pre-stage\n" \
+             f"• {shiny_manager.get_emoji('egg')} by hatching eggs\n" \
+             f"• {shiny_manager.get_emoji('research')} through quests\n" \
+             f"• {shiny_manager.get_emoji('mystery')} by opening a mystery box"
+    context.bot.send_message(chat_id=chat_id, text=legend, parse_mode=ParseMode.MARKDOWN)
+
     for site in user_shiny_sources:
         shinies = shiny_manager.get_shinies(site)
         shiny_str = f"*{site}*\n"
         if shinies:
-            shiny_str += "\n".join(f"#{dex_id} {get_pokemon('en', dex_id)} / {get_pokemon('de', dex_id)}"
-                                   for dex_id in shinies.keys())
+            shiny_str += "\n".join(f"#{dex_id} {get_pokemon('en', dex_id)} / {get_pokemon('de', dex_id)} "
+                                   f"{shiny_manager.get_emojis_for_shiny(pokemon)}"
+                                   for dex_id, pokemon in shinies.items())
         else:
             shiny_str += f"No information about shiny pokémon available."
 

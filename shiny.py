@@ -37,6 +37,14 @@ class ShinyManager:
     _instance = None
     _initialized = False
     _shiny_data_file = 'shiny_data.pickle'
+    _emoji = {
+        'wild': '🐾',
+        'raid': '⚔️',
+        'evolution': '🧿',
+        'egg': '🥚',
+        'research': '🔍',
+        'mystery': '🎁'
+    }
 
     supported_sites = ['pogoapi.net', 'gamepress.gg']
 
@@ -204,3 +212,10 @@ class ShinyManager:
     def get_all_changed_shinies(self):
         """Get all changed shinies"""
         return self._changed_shinies
+
+    def get_emojis_for_shiny(self, shiny: Shiny):
+        return "".join(self.get_emoji(attr) for attr in shiny.__dict__.keys() if getattr(shiny, attr))
+
+    def get_emoji(self, attr):
+        return self._emoji.get(attr, '')
+
