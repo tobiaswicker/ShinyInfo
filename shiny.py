@@ -3,6 +3,7 @@ import logging
 import os
 import pickle
 import urllib.request
+from collections import OrderedDict
 
 import requests
 
@@ -178,8 +179,10 @@ class ShinyManager:
 
                 self._changed_shinies[site][dex_id] = changed_attributes
 
+        ordered_result = OrderedDict(sorted(shiny_result.items()))
+
         # remember result for comparision later on
-        self._shinies[site] = shiny_result
+        self._shinies[site] = ordered_result
 
     def load_all_shinies(self):
         """Load all shinies from all sites"""
