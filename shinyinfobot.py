@@ -125,6 +125,9 @@ def list_shinies(update: Update, context: CallbackContext):
 
     shiny_manager = ShinyManager()
 
+    keyboard = [[InlineKeyboardButton(text="Delete", callback_data='delete_message')]]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+
     legend = f"*Legend*\n\n" \
              f"The following emojis symbolize how you can obtain the shiny form of that Pokémon:\n" \
              f"• {shiny_manager.get_emoji('wild')} in the wild\n" \
@@ -133,7 +136,7 @@ def list_shinies(update: Update, context: CallbackContext):
              f"• {shiny_manager.get_emoji('egg')} by hatching eggs\n" \
              f"• {shiny_manager.get_emoji('research')} through quests\n" \
              f"• {shiny_manager.get_emoji('mystery')} by opening a mystery box"
-    context.bot.send_message(chat_id=chat_id, text=legend, parse_mode=ParseMode.MARKDOWN)
+    context.bot.send_message(chat_id=chat_id, text=legend, parse_mode=ParseMode.MARKDOWN, reply_markup=reply_markup)
 
     for site in user_shiny_sources:
         shinies = shiny_manager.get_shinies(site)
@@ -158,10 +161,16 @@ def list_shinies(update: Update, context: CallbackContext):
             # remove fitting message from original message text
             shiny_str = shiny_str[cut_off_index:]
 
-            context.bot.send_message(chat_id=chat_id, text=fitting_message, parse_mode=ParseMode.MARKDOWN)
+            context.bot.send_message(chat_id=chat_id,
+                                     text=fitting_message,
+                                     parse_mode=ParseMode.MARKDOWN,
+                                     reply_markup=reply_markup)
 
         # send whats left
-        context.bot.send_message(chat_id=chat_id, text=shiny_str, parse_mode=ParseMode.MARKDOWN)
+        context.bot.send_message(chat_id=chat_id,
+                                 text=shiny_str,
+                                 parse_mode=ParseMode.MARKDOWN,
+                                 reply_markup=reply_markup)
 
 
 def select_source(update: Update, context: CallbackContext):
@@ -217,9 +226,20 @@ def select_source(update: Update, context: CallbackContext):
                                   parse_mode=ParseMode.MARKDOWN)
 
 
+def delete_message(update: Update, context: CallbackContext):
+    message = update.effective_message
+    user = update.effective_user
+    chat_id = update.effective_chat.id
+    logger.info(f"Received request to delete message #{message.message_id} by user #{user.id} (@{user.username}) in "
+                f"chat #{chat_id}")
+    update.effective_message.delete()
+
+
 def start(update: Update, context: CallbackContext):
     """Start the bot"""
     chat_id = update.effective_chat.id
+    user = update.effective_user
+    logger.info(f"Received /start command by user #{user.id} (@{user.username}) in chat #{chat_id}")
 
     context.chat_data['id'] = chat_id
 
@@ -265,6 +285,7 @@ def main():
 
     dp.add_handler(CallbackQueryHandler(callback=list_shinies, pattern='^list_shinies'))
     dp.add_handler(CallbackQueryHandler(callback=select_source, pattern='^select_source'))
+    dp.add_handler(CallbackQueryHandler(callback=delete_message, pattern='^delete_message$'))
 
     # error handler
     dp.add_error_handler(error)
