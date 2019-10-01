@@ -5,7 +5,7 @@ to any of the sources. You can request a list of shiny Pokémon and see how each
 
 Currently [Gamepress.gg](https://pokemongo.gamepress.gg/pokemon-go-shinies-list) and 
 [Pogoapi.net](https://pogoapi.net//api/v1/shiny_pokemon.json) are supported. If you know of any other detailed shiny
-info page, feel free to create an issue or - even better - a pull request. 
+info page, please create an issue or - even better - a pull request. 
 
 If you don't want to set up your own bot, feel free to use [@ShineInfoBot](https://t.me/ShineInfoBot).
 
