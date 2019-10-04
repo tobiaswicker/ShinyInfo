@@ -32,6 +32,10 @@ class Shiny:
                self.research == other.research and \
                self.mystery == other.mystery
 
+    def __repr__(self):
+        params = ", ".join(f"{key}={value}" for key, value in self.__dict__.items() if value is not None)
+        return f"{self.__class__.__name__}({params})"
+
 
 class ShinyManager:
     """Manager for shinies from various data sources. This is a Singleton."""
